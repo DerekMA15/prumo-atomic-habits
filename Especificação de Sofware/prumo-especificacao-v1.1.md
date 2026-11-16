@@ -69,8 +69,8 @@ A v1 é considerada validada quando, em **30 dias de uso real**:
 |---|---|
 | RNF01 | **Rapidez:** check-in completo em menos de 60 segundos, com no máximo dois toques por métrica |
 | RNF02 | **Offline e local-first:** todos os dados ficam no aparelho |
-| RNF03 | **Privacidade:** banco criptografado (SQLCipher) e bloqueio do app por biometria ou credencial do aparelho |
-| RNF03a | **Chave do banco:** gerada aleatoriamente no primeiro uso e guardada cifrada com uma chave do **Android Keystore**, liberada após autenticação (biometria ou PIN/padrão do aparelho). Não existe PIN próprio do app na v1 |
+| RNF03 | **Privacidade:** banco criptografado (SQLCipher)
+| RNF03a | **Chave do banco:** gerada aleatoriamente no primeiro uso e guardada cifrada com uma chave do **Android Keystore** 
 | RNF03b | O bloqueio é reaplicado após **1 minuto** em segundo plano (valor padrão, configurável) |
 | RNF04 | **Evolução:** métricas, áreas e hábitos configuráveis, sem número fixo no código |
 | RNF05 | **Integridade:** itens com histórico são arquivados, não apagados (ver RF18); restrições de unicidade no banco (ver §4) |
@@ -139,10 +139,9 @@ A v1 é considerada validada quando, em **30 dias de uso real**:
 | UC10 | Consultar revisão semanal/mensal | RF12 |
 | UC11 | Configurar métricas e hábitos | RF06, RF09, RF18 |
 | UC12 | Exportar e importar backup | RF13 |
-| UC13 | Desbloquear o app (biometria/credencial do aparelho) | RNF03 |
-| UC14 | Consultar um dia passado | RF16 |
-| UC15 | Editar ou excluir registros do dia | RF15 |
-| UC16 | Receber e configurar o lembrete diário | RF14 |
+| UC13 | Consultar um dia passado | RF16 |
+| UC14 | Editar ou excluir registros do dia | RF15 |
+| UC15 | Receber e configurar o lembrete diário | RF14 |
 
 ### 5.2 Detalhamento
 
@@ -213,25 +212,17 @@ A v1 é considerada validada quando, em **30 dias de uso real**:
   3. O usuário toca em um ponto do gráfico para abrir o dia correspondente (UC14).
 - **Alternativo:** poucos dados no período; o app mostra um estado vazio explicativo em vez de tendência enganosa.
 
-#### UC13 — Desbloquear o app
-- **Fluxo principal:**
-  1. Ao abrir o app, ou ao voltar após o tempo de bloqueio (padrão: 1 minuto), o app exibe a tela de bloqueio.
-  2. O usuário se autentica com biometria ou com o PIN/padrão do aparelho.
-  3. O app libera a chave do banco e abre a tela anterior.
-- **Alternativo:** autenticação falha ou é cancelada; o app permanece bloqueado e não abre o banco.
-- **Risco registrado:** se o aparelho perder as credenciais ou a chave do Keystore for invalidada, os dados só podem ser recuperados por **backup** (UC12). Por isso o backup periódico é recomendado.
-
-#### UC14 — Consultar um dia passado
+#### UC13 — Consultar um dia passado
 - **Fluxo principal:**
   1. O usuário escolhe uma data (pelo calendário na tela "Planejar" ou pela revisão).
   2. O app mostra tarefas, check-in (com notas), sono, hábitos e diário daquele dia.
   3. O usuário pode editar (UC15).
 
-#### UC15 — Editar ou excluir registros do dia
+#### UC14 — Editar ou excluir registros do dia
 - **Fluxo principal:** a partir de "Hoje" ou de um dia passado, o usuário abre um registro, altera ou exclui e confirma.
 - **Regra:** excluir uma tarefa *migrada* não apaga a nova; a linhagem da nova passa a apontar para vazio.
 
-#### UC16 — Lembrete diário
+#### UC15 — Lembrete diário
 - **Fluxo principal:** o usuário define um horário em Configurações; no horário, o app mostra uma notificação simples "Hora do check-in"; tocar abre o check-in rápido.
 - **Alternativo:** lembrete desligado ou permissão de notificação negada; o app segue funcionando sem lembrete.
 
@@ -250,7 +241,6 @@ A v1 é considerada validada quando, em **30 dias de uso real**:
 
 | Tela | Conteúdo |
 |---|---|
-| **Bloqueio** | Autenticação biométrica/credencial do aparelho (UC13) |
 | **Hoje** | Ordem de cima para baixo: card de check-in rápido, card de sono (resumo ou botão "Registrar sono"), tarefas do dia, hábitos, diário. Card de revisão pendente quando aplicável |
 | **Check-in rápido** | Folha (*bottom sheet*) com as métricas 1–5 e notas opcionais, pensada para menos de 60 s |
 | **Sono** | Formulário de registro (UC06) |
@@ -269,7 +259,6 @@ A v1 é considerada validada quando, em **30 dias de uso real**:
 - **Arquitetura:** MVVM, com camada de repositório
 - **Injeção de dependência:** **Hilt**
 - **Persistência:** Room (SQLite) com **SQLCipher** (`SupportFactory`)
-- **Chave do banco:** Android Keystore, liberada após `BiometricPrompt` com `BIOMETRIC_STRONG | DEVICE_CREDENTIAL`
 - **Gráficos:** **Vico** (nativo de Compose)
 - **Lembrete:** WorkManager ou AlarmManager + notificação local
 - **Backup:** AES-256-GCM com chave derivada da senha do usuário (PBKDF2 ou Argon2), `schema_version` no cabeçalho
@@ -332,7 +321,6 @@ Dica: antes da fase 1, rode por 2 semanas as mesmas métricas 1–5 em uma plani
 | Tema | Decisão |
 |---|---|
 | Chave do SQLCipher | Aleatória, guardada cifrada no Android Keystore, liberada após autenticação |
-| Bloqueio | Biometria ou credencial do aparelho; sem PIN próprio na v1 |
 | Sono | Tempo na cama ≠ tempo dormindo; regularidade = desvio-padrão dos horários |
 | Semana e mês | Semana ISO (segunda a domingo), mês calendário |
 | Revisão | Iniciada pelo usuário, com card de lembrete |
